@@ -1,0 +1,4 @@
+open /Users/Shared/Repositories/Taknology/odoo/import_data/data/product.template.csv
+Skipping until line 0 excluded
+time for batch [0] - 1 of 1 : 3.694810152053833
+1 product.template imported, total time 3.6952311992645264 second(s)

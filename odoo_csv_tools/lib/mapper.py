@@ -37,6 +37,13 @@ def val(field, default='', postprocess=lambda x: x, skip=False):
         return postprocess(line.get(field, default) or default)
     return val_fun
 
+def string_val(field, default='', postprocess=lambda x: x, skip=False):
+    def val_fun(line):
+        if not line[field] and skip:
+            raise SkippingException("Missing Value for %s" % field)
+        return postprocess(line.get(field, default) or default)
+    return str(val_fun)
+
 def val_fallback(field, fallback_file, default='', postprocess=lambda x: x, skip=False):
     def val_fun(line):
         if not line[field] and not line[fallback_file] and skip:

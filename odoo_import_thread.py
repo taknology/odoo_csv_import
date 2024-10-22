@@ -19,6 +19,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 import argparse
 from odoo_csv_tools import import_threaded
 
+def str2bool(v):
+  return v.lower() in ("yes", "true", "t", "1")
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Import data in batch and in parallel')
     parser.add_argument('-c', '--config', dest='config', default="conf/connection.conf", help='Configuration File that contains connection parameters', required = True)
@@ -34,6 +37,7 @@ if __name__ == '__main__':
     parser.add_argument('--check', dest='check', action='store_true', help='Check if record are imported after each batch.')
     parser.add_argument('--context', dest='context', help='context that will be passed to the load function, need to be a valid python dict', default="{'tracking_disable' : True}")
     parser.add_argument('--o2m', action='store_true', dest="o2m", help="When you want to import o2m field, don't cut the batch until we find a new id")
+    parser.add_argument('--rsr_data', dest='rsr_data', help='set to True to us RSR data file', default=False)
     parser.add_argument('--encoding', dest='encoding', default="utf-8", help='Encoding of the data file')
     #TODO args : encoding
     #{'update_many2many': True,'tracking_disable' : True, 'create_product_variant' : True, 'check_move_validity' : False}
@@ -47,6 +51,11 @@ if __name__ == '__main__':
     encoding= args.encoding
     context= eval(args.context)
     ignore = False
+    try:
+        rsr_data = str2bool(args.rsr_data)
+    except:
+        rsr_data = False
+    
     if args.ignore:
         ignore = args.ignore.split(',')
 
@@ -56,8 +65,10 @@ if __name__ == '__main__':
         batch_size = 1
         max_connection = 1
         split = False
+        rsr_data = False
 
     import_threaded.import_data(args.config, args.model, file_csv=file_csv, context=context,
                                 fail_file=fail_file, encoding=encoding, separator=args.separator,
                                 ignore=ignore, split=args.split, check=args.check,
-                                max_connection=max_connection, batch_size=batch_size, skip=int(args.skip), o2m=args.o2m)
+                                max_connection=max_connection, batch_size=batch_size,
+                                skip=int(args.skip), o2m=args.o2m, rsr_data=rsr_data)

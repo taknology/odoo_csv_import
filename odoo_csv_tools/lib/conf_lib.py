@@ -6,6 +6,23 @@ else:
     import ConfigParser
 import logging
 import sys
+import psycopg2
+
+def get_db_connection(config_file):
+    parser = ConfigParser()
+    parser.read(config_file)
+
+    # get section, default to postgresql
+    config = {}
+    if parser.has_section('postgresql'):
+        params = parser.items('postgresql')
+        for param in params:
+            config[param[0]] = param[1]
+    else:
+        raise Exception('Section {0} not found in the {1} file'.format('postgresql', config_file))
+
+    conn = psycopg2.connect(config)
+    return conn
 
 
 def get_server_connection(config_file):

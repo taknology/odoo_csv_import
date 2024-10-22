@@ -19,6 +19,7 @@ import sys
 import csv
 
 from time import time
+from datetime import datetime, date
 
 from .lib import conf_lib
 from .lib.conf_lib import log_error, log_info, log
@@ -33,8 +34,216 @@ else:
     from xmlrpclib import Fault
     from builtins import range
 
-csv.field_size_limit(2**31-1)
+rsr_product_sell_description_prefix = "rsr.product_sell_description."
+rsr_product_attribute_prefix = "rsr.product_attribute."
+rsr_product_category_prefix = "rsr.product_category."
+rsr_product_retail_map_prefix = "rsr.product_retail_map."
+rsr_product_features_prefix = "rsr.product_features."
+rsr_product_xref_prefix = "rsr.product_xref."
+rsr_product_prefix = "rsr.product."
 
+#product_template_prefix = "product.product_template."
+product_category_prefix = "product_category."
+product_attribute_prefix = "product_attribute."
+public_supplierinfo_prefix = "public_supplierinfo."
+public_product_category_prefix = "product_public_category."
+
+RSR_PRODUCT_FILE_HEADERS  = [
+    'id',
+    'stock_number',
+    'upc',
+    'product_description',
+    'department_id',
+    'manufacturer_id',
+    'retail_price',
+    'rsr_pricing',
+    'product_weight',
+    'inventory_quantity',
+    'model',
+    'full_manufacturer_name',
+    'manufacturer_part_number',
+    'allocated_closeout_deleted',
+    'expanded_product_description',
+    'image_name',
+    'ak',
+    'al',
+    'ar',
+    'az',
+    'ca',
+    'co',
+    'ct',
+    'dc',
+    'de',
+    'fl',
+    'ga',
+    'hi',
+    'ia',
+    'id2',
+    'il',
+    'in_',
+    'ks',
+    'ky',
+    'la',
+    'ma',
+    'md',
+    'me',
+    'mi',
+    'mn',
+    'mo',
+    'ms',
+    'mt',
+    'nc',
+    'nd',
+    'ne',
+    'nh',
+    'nj',
+    'nm',
+    'nv',
+    'ny',
+    'oh',
+    'or_',
+    'ok',
+    'pa',
+    'ri',
+    'sc',
+    'sd',
+    'tn',
+    'tx',
+    'ut',
+    'va',
+    'vt',
+    'wa',
+    'wi',
+    'wv',
+    'wy',
+    'ground_shipments_only',
+    'adult_signature_requred',
+    'blocked_from_dropship',
+    'date_entered',
+    'retail_map',
+    'image_disclaimer',
+    'shipping_length',
+    'shipping_width',
+    'shipping_height',
+    'prop_65',
+    'vendor_approval_required',
+    'reserved'#,
+    #'partner_id'
+]
+
+RSR_PRODUCT_ATTRIBUTE_FILE_HEADERS  = [
+    'id',
+    'stock_number',
+    'manufacturer_id',
+    'accessories',
+    'action',
+    'type_of_barrel',
+    'barrel_length',
+    'department_id',
+    'chamber',
+    'chokes',
+    'condition',
+    'capacity',
+    'description',
+    'dram',
+    'edge',
+    'firing_casing',
+    'finish',
+    'fit1',
+    'fit2',
+    'feet_per_second',
+    'frame',
+    'caliber1',
+    'caliber2',
+    'grain_weight',
+    'grips',
+    'hand',
+    'manufacturer_name',
+    'manufacturer_part_number',
+    'manufacturer_weight',
+    'moa',
+    'model1',
+    'model2',
+    'new_stock',
+    'nsn',
+    'objective',
+    'ounce_of_shot',
+    'packaging',
+    'power',
+    'reticle',
+    'safety',
+    'sights',
+    'size',
+    'product_type',
+    'units_per_box',
+    'units_per_case',
+    'wt_characteristics',
+    'sub_category',
+    'diameter',
+    'color',
+    'material',
+    'stock',
+    'lens_color',
+    'handle_color'
+]
+    
+RSR_PRODUCT_CATEGORY_HEADERS = [
+    'id',
+    'department_id',
+    'department_name',
+    'category_id',
+    'category_name'
+]
+
+RSR_PRODUCT_CATEGORY_HEADERS2 = [
+    'id',
+    'sub_category',
+    'department_id',
+    'department_name',
+    'category_id',
+    'category_name',
+    'product_category_id',
+    'product_category',
+    'product_public_category_id',
+    'product_public_category',
+]
+
+RSR_RETAIL_MAP_HEADERS = [
+    'id',
+    'sku',
+    'retail_map'
+]
+
+RSR_PRODUCT_SELL_DESCRIPTION_HEADERS = [
+    'id',
+    'stock_number',
+    'sell_description'
+]
+
+RSR_PRODUCT_FEATURE_HEADERS = [
+    'id',
+    'stock_number',
+    'features'
+]
+
+RSR_PRODUCT_XREF_HEADERS = [
+    'id',
+    'stock_number',
+    'department_number',
+    'associated_stock_number',
+    'associated_department_number'
+]
+
+# PRODUCT_ATTRIBUTE_HEADER = [
+#     'id',
+#     'name',
+#     'display_type',
+#     'sequence',
+#     'create_variant',
+#     'visibility'
+# ]
+
+csv.field_size_limit(2**31-1)
 
 class RPCThreadImport(RpcThread):
 
@@ -112,7 +321,7 @@ def filter_header_ignore(ignore, header):
     return new_header
 
 
-def read_file(file_to_read, delimiter=';', encoding='utf-8', skip=0):
+def read_file(file_to_read, model, delimiter=';', encoding='utf-8', skip=0, rsr_data=False):
     def get_real_header(header):
         """ Get real header cut at the first empty column """
         new_header = []
@@ -138,11 +347,76 @@ def read_file(file_to_read, delimiter=';', encoding='utf-8', skip=0):
     log('open %s' % file_to_read)
     file_ref = open_read(file_to_read, encoding=encoding)
     reader = UnicodeReader(file_ref, delimiter=delimiter, encoding=encoding)
-    header = next(reader)
-    header = get_real_header(header)
-    check_id_column(header)
-    skip_line(reader)
-    data = [l for l in reader]
+    
+    try:
+        if model == 'ffl_tools.rsr_product':
+            data = [item for item in reader]
+            for row in data:
+                if len(row[1]) != 12:
+                    row[1] = row[11].replace(' ', '~')
+                if len(row[69]) < 8:
+                    row[69] = date.today().strftime('%Y-%m-%d')
+                else:
+                    row[69] = datetime.strptime(row[69],'%Y%m%d').strftime('%Y-%m-%d')
+                row.insert(0, rsr_product_prefix + row[0])
+                #row.insert(len(row), 'RSR Group, Inc')
+            if data[0][0] != 'id':
+                header = RSR_PRODUCT_FILE_HEADERS
+        elif model == 'ffl_tools.rsr_product_attribute':
+            data = [item for item in reader]
+            for row in data:
+                row.insert(0, rsr_product_attribute_prefix + row[0])
+                if (row[4] == 'Bolt' or row[4] == 'Lever' or row[4] == 'Pump'):
+                    row[4] = row[4] + ' Action'
+            if data[0][0] != 'id':
+                header = RSR_PRODUCT_ATTRIBUTE_FILE_HEADERS
+        elif model == 'ffl_tools.rsr_product_category':
+            if rsr_data == False:
+                header = next(reader)
+                header = get_real_header(header)
+                check_id_column(header)
+                skip_line(reader)
+                data = [l for l in reader]
+            else:
+                data = [item for item in reader]
+                for row in data:
+                    row.insert(0, rsr_product_category_prefix + row[0])
+                if data[0][0] != 'id':
+                    header = RSR_PRODUCT_CATEGORY_HEADERS
+        elif model == 'ffl_tools.rsr_retail_map':
+            data = [item for item in reader if not item[0] == 'SKU']
+            for row in data:
+                row.insert(0, rsr_product_retail_map_prefix + row[0].strip())
+            if data[0][0] != 'id':
+                header = RSR_RETAIL_MAP_HEADERS
+        elif (model == 'ffl_tools.rsr_product_sell_description'):
+            #process ONLY SELLCOPY rows
+            data = [item[1:] for item in reader if item[0] == 'SELLCOPY']
+            for row in data:
+                row[1] = row[1].replace('"', '')
+                row.insert(0, rsr_product_sell_description_prefix + row[0]) 
+            if data[0][0] != 'id':
+                header = RSR_PRODUCT_SELL_DESCRIPTION_HEADERS
+        elif (model == 'ffl_tools.rsr_product_features'):
+            #process ONLY FEATURE rows
+            data = [item[1:] for item in reader if item[0] == 'FEATURES']
+            for row in data:
+                row.insert(0, rsr_product_features_prefix + row[0]) 
+            if data[0][0] != 'id':
+                header = RSR_PRODUCT_FEATURE_HEADERS
+        elif model == 'ffl_tools.rsr_product_xref':
+            data = [item for item in reader]
+            for row in data:
+                row.insert(0, rsr_product_xref_prefix + row[0] + '-' + row[2].replace(' ', '~'))
+            header = RSR_PRODUCT_XREF_HEADERS
+        else:
+            header = next(reader)
+            header = get_real_header(header)
+            check_id_column(header)
+            skip_line(reader)
+            data = [l for l in reader]
+    except Exception as e:
+        log('Error during parsing preview: %s' % e)
     return header, data
 
 
@@ -181,7 +455,7 @@ def do_not_split(split, previous_split_value, split_index, line, o2m=False, id_i
 
 def import_data(config_file, model, header=None, data=None, file_csv=None, context=None, fail_file=False,
                 encoding='utf-8', separator=";", ignore=False, split=False, check=True, max_connection=1,
-                batch_size=10, skip=0, o2m=False):
+                batch_size=10, skip=0, o2m=False, rsr_data=False):
     """
         header and data mandatory in file_csv is not provided
 
@@ -190,7 +464,7 @@ def import_data(config_file, model, header=None, data=None, file_csv=None, conte
     context = context or {}
 
     if file_csv:
-        header, data = read_file(file_csv, delimiter=separator, encoding=encoding, skip=skip)
+        header, data = read_file(file_csv, model=model, delimiter=separator, encoding=encoding, skip=skip, rsr_data=rsr_data)
         fail_file = fail_file or file_csv + ".fail"
         file_result = open_write(fail_file, encoding=encoding)
 

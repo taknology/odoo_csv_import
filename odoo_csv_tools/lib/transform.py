@@ -5,6 +5,7 @@ Created on 10 sept. 2016
 @author: Thibault Francois
 '''
 import os
+import datetime
 
 from collections import OrderedDict
 
@@ -13,7 +14,7 @@ from . internal.tools import ReprWrapper, AttributeLineDict
 from . internal.io import write_file, is_string, open_read
 from . internal.exceptions import SkippingException
 from . import mapper
-
+from .conf_lib import log_error, log_info, log
 
 class Processor(object):
     def __init__(self, filename=None, delimiter=";", encoding='utf-8', header=None, data=None, preprocess=lambda header, data: (header, data), conf_file=False):
@@ -67,11 +68,13 @@ class Processor(object):
         return mapping
 
     def process(self, mapping, filename_out, import_args, t='list', null_values=['NULL', False], verbose=True, m2m=False):
+        log_info("Building %s started:  %s" % (filename_out, "{date:%d-%m-%Y @ %H:%M:%S}".format(date=datetime.datetime.now())))
         if m2m:
             head, data = self.__process_mapping_m2m(mapping, null_values=null_values, verbose=verbose)
         else:
             head, data = self.__process_mapping(mapping, t=t, null_values=null_values, verbose=verbose)
         self._add_data(head, data, filename_out, import_args)
+        log_info("Building %s finished: %s" % (filename_out, "{date:%d-%m-%Y @ %H:%M:%S}".format( date=datetime.datetime.now())))
         return head, data
 
     def write_to_file(self, script_filename, fail=True, append=False, python_exe='', path='', encoding='utf-8'):
