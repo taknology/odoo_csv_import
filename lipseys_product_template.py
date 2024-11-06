@@ -4,11 +4,9 @@ from odoo_csv_tools.lib.transform import Processor
 from import_globals import (product_template_prefix
                             , public_supplierinfo_prefix
                             , data_file_path
-                            , orchid_image_file_path
-                            , lipseys_image_file_path
-                            , rsr_image_file_path)
+                            , lipseys_image_file_path)
 
-processor = Processor(data_file_path + "product_template.csv", delimiter=",")
+processor = Processor(data_file_path + "lipseys_product_template.csv", delimiter=",")
 
 product_template_mapping = {
     "id": mapper.m2o_map(product_template_prefix, mapper.val("barcode"))
@@ -31,9 +29,7 @@ product_template_mapping = {
     #,"x_studio_product_features": mapper.val("x_studio_product_features")
     ,"description_sale": mapper.val("description_sale")
     #,"image_1920": mapper.binary_url("image_1920")
-    #,"image_1920": mapper.binary('image_1920', lipseys_image_file_path)
-    #,"image_1920": mapper.binary('image_1920', rsr_image_file_path)
-    ,"image_1920": mapper.binary('image_1920', orchid_image_file_path)
+    ,"image_1920": mapper.binary('image_1920', lipseys_image_file_path)
     ,"tracking": mapper.val("tracking")
     ,"available_in_pos": mapper.val("available_in_pos")
     ,"is_published":mapper.val("is_published")
@@ -49,6 +45,6 @@ product_supplierinfo_mapping =  {
     ,"x_studio_vendor_part_number": mapper.val("product_supplierinfo/x_studio_vendor_part_number")
 }
 
-processor.process(product_template_mapping, data_file_path + "product.template.csv", {"model": "product.template", "context": "{'tracking_disable': True}", "worker": 4, "batch_size": 20})
-processor.process(product_supplierinfo_mapping, data_file_path + "product.supplierinfo.csv", {"model": "product.supplierinfo", "context": "{'tracking_disable': True}", "worker": 4, "batch_size": 20}, "set")
-processor.write_to_file(data_file_path + "product_template.sh", python_exe='python3', path='')
+processor.process(product_template_mapping, data_file_path + "lipseys.product.template.csv", {"model": "product.template", "context": "{'tracking_disable': True}", "worker": 4, "batch_size": 20})
+processor.process(product_supplierinfo_mapping, data_file_path + "lipseys.product.supplierinfo.csv", {"model": "product.supplierinfo", "context": "{'tracking_disable': True}", "worker": 4, "batch_size": 20}, "set")
+processor.write_to_file(data_file_path + "lipseys_product_template.sh", python_exe='python3', path='')

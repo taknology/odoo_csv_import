@@ -42,7 +42,6 @@ rsr_product_features_prefix = "rsr.product_features."
 rsr_product_xref_prefix = "rsr.product_xref."
 rsr_product_prefix = "rsr.product."
 
-#product_template_prefix = "product.product_template."
 product_category_prefix = "product_category."
 product_attribute_prefix = "product_attribute."
 public_supplierinfo_prefix = "public_supplierinfo."
@@ -233,15 +232,6 @@ RSR_PRODUCT_XREF_HEADERS = [
     'associated_stock_number',
     'associated_department_number'
 ]
-
-# PRODUCT_ATTRIBUTE_HEADER = [
-#     'id',
-#     'name',
-#     'display_type',
-#     'sequence',
-#     'create_variant',
-#     'visibility'
-# ]
 
 csv.field_size_limit(2**31-1)
 

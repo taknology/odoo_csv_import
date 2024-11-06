@@ -17,7 +17,7 @@ product_template_attribute_line_prefix = "product_template_attribute_line"
 product_template_attribute_value_prefix = "product_template_attribute_value"
 
 data_file_path = "/Users/Shared/Repositories/Taknology/odoo/import_data/data/"
-image_file_path =           "/Users/Shared/Repositories/Taknology/odoo/import_data/images/"
+rsr_image_file_path =           "/Users/Shared/Repositories/Taknology/odoo/import_data/images/"
 lipseys_image_file_path =   "/Users/Shared/Repositories/Taknology/odoo/import_data/lipseys_images/"
 orchid_image_file_path =   "/Users/Shared/Repositories/Taknology/odoo/import_data/orchid_images/"
 
