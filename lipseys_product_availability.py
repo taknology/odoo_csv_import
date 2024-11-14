@@ -13,8 +13,8 @@ product_supplierinfo_mapping =  {
     ,"product_tmpl_id/id": mapper.m2o_map(product_template_prefix, mapper.val("barcode"))
     ,"price": mapper.val("product_supplierinfo/price")
     ,"partner_id": mapper.val("product_supplierinfo/partner_id")
-    ,"x_studio_qty_on_hand": mapper.val("product_supplierinfo/x_studio_qty_on_hand")
-    ,"x_studio_vendor_part_number": mapper.val("product_supplierinfo/x_studio_vendor_part_number")
+    ,"qty_on_hand": mapper.val("product_supplierinfo/qty_on_hand")
+    ,"vendor_part_number": mapper.val("product_supplierinfo/vendor_part_number")
 }
 
 processor.process(product_supplierinfo_mapping, data_file_path + "lipseys.product.availability.csv", {"model": "product.supplierinfo", "context": "{'tracking_disable': True}", "worker": 4, "batch_size": 20}, "set")
