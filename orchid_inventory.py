@@ -30,6 +30,7 @@ orchid_product_mapping = {
     ,"serial_number_flag": mapper.bool_val('serial_number_flag',['yes'], ['no'])
     ,"firearm_type": mapper.val("firearm_type")
     ,"caliber_ga": mapper.val("caliber_ga")
+    ,"firearm_condition": mapper.val("firearm_condition")
     ,"barrel_length": mapper.val("barrel_length")
     ,"magazine_capacity": mapper.val("magazine_capacity")
     ,"action": mapper.val("action")
